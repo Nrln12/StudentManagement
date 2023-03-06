@@ -3,6 +3,7 @@ package com.example.bankofbaku.StudentManagement.services;
 import com.example.bankofbaku.StudentManagement.dto.StudentDto;
 import com.example.bankofbaku.StudentManagement.entity.Student;
 import com.example.bankofbaku.StudentManagement.exceptions.AlreadyExistsException;
+import com.example.bankofbaku.StudentManagement.exceptions.IsNotValidException;
 import com.example.bankofbaku.StudentManagement.exceptions.NotFoundException;
 import com.example.bankofbaku.StudentManagement.repositories.StudentRepository;
 import lombok.extern.slf4j.Slf4j;
@@ -10,8 +11,13 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import javax.xml.bind.ValidationException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -34,22 +40,30 @@ public class StudentServiceImpl implements StudentService {
     }
 
     public StudentDto convertIntoDto(Student student) {
-        return new StudentDto(student.getFirstName(), student.getLastName(), student.getEmail());
+        return new StudentDto(student.getFirstName(), student.getLastName(), student.getEmail(), student.getPassword());
     }
 
     public StudentDto addStudent(Student std) throws Exception {
 
         Optional<Student> currStd = studentRepository.findByEmail(std.getEmail());
+
         if (currStd.isPresent()) {
             throw new AlreadyExistsException("Email has already exists");
         } else {
-            studentRepository.save(std);
+            if(!checkEmail(std)){
+                throw new IsNotValidException("Your email is not valid");
+            }else if(!isValidPassword(std)){
+                throw new IsNotValidException("The password is not valid");
+            }
+            else{
+                studentRepository.save(std);
+            }
         }
         return convertIntoDto(std);
     }
 
-    public ResponseEntity<Optional<StudentDto>> findById(Long id) throws NotFoundException {
-        Optional<StudentDto> std = Optional.ofNullable(studentRepository.findById(id).
+    public ResponseEntity<Optional<StudentDto>> findByIdAndStatusTrue(Long id) throws NotFoundException {
+        Optional<StudentDto> std = Optional.ofNullable(studentRepository.findByIdAndStatusTrue(id).
                 orElseThrow(() -> new NotFoundException(id + " Student not found"))).stream().map(this::convertIntoDto).findFirst();
         return ResponseEntity.ok().body(std);
     }
@@ -67,27 +81,27 @@ public class StudentServiceImpl implements StudentService {
 
 
     public StudentDto updateStudent(Long id, Student newStd) throws Exception {
-//        Optional<Student> currStd = studentRepository.findById(id);
-//        if(currStd.isPresent()){
-//            Student std=currStd.get();
-//            std.setFirstName(newStd.getFirstName());
-//            std.setLastName(newStd.getLastName());
-//            std.setEmail(newStd.getEmail());
-//            std.setId(id);
-//            studentRepository.save(std);
-//        }
-
-        Optional<Student> currStd = studentRepository.findById(id);
+        Optional<Student> currStd = studentRepository.findByIdAndStatusTrue(id);
         if (currStd.isEmpty()) {
             throw new NotFoundException("Student not found");
         }
         Student student = currStd.get();
         try {
-            student.setFirstName(newStd.getFirstName());
-            student.setLastName(newStd.getLastName());
-            student.setEmail(newStd.getEmail());
-            student.setId(id);
-            studentRepository.save(student);
+            if(!checkEmail(newStd)){
+                throw new IsNotValidException("Email is not valid");
+
+            }
+            if(!isValidPassword(newStd)){
+                throw new IsNotValidException("Password is not valid");
+            }
+           else{
+                student.setFirstName(newStd.getFirstName());
+                student.setLastName(newStd.getLastName());
+                student.setEmail(newStd.getEmail());
+                student.setPassword(newStd.getPassword());
+                student.setId(id);
+                studentRepository.save(student);
+            }
         } catch (Exception e) {
             throw new Exception(e);
         }
@@ -95,7 +109,7 @@ public class StudentServiceImpl implements StudentService {
     }
 
     public void deleteById(Long id) throws NotFoundException {
-        Optional<Student> currStd = studentRepository.findById(id);
+        Optional<Student> currStd = studentRepository.findByIdAndStatusTrue(id);
         Student student = (Student) currStd.get(); // duzelis
         try {
             if (currStd.isPresent()) { // duzelis
@@ -114,6 +128,51 @@ public class StudentServiceImpl implements StudentService {
             studentRepository.save(allStd);
         }
     }
+public boolean checkEmail(Student std){
+        boolean isValid=true;
+        if(!(std.getEmail().contains("@") && std.getEmail().contains(".")))
+            isValid=false;
+        return isValid;
+}
 
-
+public boolean isValidPassword(Student std){
+    String regex = "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$%^&+=])(?=\\S+$).{8,20}$";
+    Pattern p = Pattern.compile(regex);
+    if(std.getPassword()==null){
+        return false;
+    }
+    Matcher m =p.matcher(std.getPassword());
+    return m.matches();
+}
+//public HashMap<Boolean, String> isValidPassword(Student std){
+//       boolean isValid=true;
+//       String message="";
+//       HashMap<Boolean, String> response= new HashMap<Boolean, String>();
+//       if(std.getPassword().length()>=8 && std.getPassword().length()<17){
+//           isValid=true;
+//           message="Length of the password must be between 8 and 16";
+//       }
+//       String upperCaseChars =  "(.*[A-Z].*)";
+//       if(!std.getPassword().contains(upperCaseChars)){
+//           isValid=false;
+//           message="Password must contain at least one upper case character";
+//       }
+//        String lowerCaseChars="(.*[a-z].*)";
+//       if(!std.getPassword().contains(lowerCaseChars)){
+//           isValid=false;
+//           message="Password must contain at least one lower case character";
+//       }
+//       String numbers="(.*[0-9].*)";
+//       if(!std.getPassword().contains(numbers)){
+//           isValid=false;
+//           message="Password must contain at least one number";
+//       }
+//       String specialChars="(.*[@,#,$,%].*$)";
+//       if(!std.getPassword().contains(specialChars)){
+//           isValid=false;
+//           message="Password must contain at least one special character";
+//       }
+//       response.put(isValid,message);
+//       return response;
+//}
 }

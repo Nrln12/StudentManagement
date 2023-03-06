@@ -4,7 +4,7 @@ import com.example.bankofbaku.StudentManagement.dto.StudentDto;
 import com.example.bankofbaku.StudentManagement.entity.Student;
 import com.example.bankofbaku.StudentManagement.exceptions.NotFoundException;
 import com.example.bankofbaku.StudentManagement.services.StudentServiceImpl;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -13,10 +13,9 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/students")
+@RequiredArgsConstructor
 public class StudentController {
-    @Autowired
-    StudentServiceImpl studentServiceImpl; // interfeysi cagirsin
-
+private final StudentServiceImpl studentServiceImpl;
     @GetMapping
     public List<StudentDto> getAllStudents(){
         return (List<StudentDto>) studentServiceImpl.getAllStudents();
@@ -27,7 +26,7 @@ public class StudentController {
     }
     @GetMapping("/{id}")
     public ResponseEntity<Optional<StudentDto>> findById(@PathVariable Long id) throws NotFoundException {
-        return studentServiceImpl.findById(id);
+        return studentServiceImpl.findByIdAndStatusTrue(id);
 
     }
     @GetMapping("/email/{email}")

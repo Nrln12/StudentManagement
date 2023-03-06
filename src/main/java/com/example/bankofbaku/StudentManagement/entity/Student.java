@@ -21,6 +21,7 @@ public class Student {
     private String firstName;
     private String lastName;
     private String email;
-    //private String password;
+
+    private String password;
     private boolean status=true;
 }
