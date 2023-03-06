@@ -10,7 +10,7 @@ import java.util.Optional;
 @Repository
 public interface StudentRepository extends JpaRepository<Student, Long> {
     List<Student> findByStatus(boolean isTrue);
-
-    Optional<Student> findByIdAndStatusTrue(Long id, boolean status); // bunu istifade et
+    Optional<Student> findByEmail(String email);
+    Optional<Student> findByIdAndStatusTrue(Long id); // bunu istifade et
 
 }

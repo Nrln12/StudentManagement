@@ -7,6 +7,6 @@ import org.springframework.stereotype.Component;
 @Component
 public class StudentMapper {
     public StudentDto studentDto(Student student){
-        return new StudentDto(student.getFirstName(),student.getLastName());
+        return new StudentDto(student.getFirstName(),student.getLastName(),student.getEmail());
     };
 }

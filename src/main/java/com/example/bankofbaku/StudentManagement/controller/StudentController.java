@@ -2,6 +2,7 @@ package com.example.bankofbaku.StudentManagement.controller;
 
 import com.example.bankofbaku.StudentManagement.dto.StudentDto;
 import com.example.bankofbaku.StudentManagement.entity.Student;
+import com.example.bankofbaku.StudentManagement.exceptions.NotFoundException;
 import com.example.bankofbaku.StudentManagement.services.StudentServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -18,18 +19,21 @@ public class StudentController {
 
     @GetMapping
     public List<StudentDto> getAllStudents(){
-        return  studentServiceImpl.getAllStudents();
+        return (List<StudentDto>) studentServiceImpl.getAllStudents();
     }
     @PostMapping
     public StudentDto addStudent(@RequestBody Student std) throws Exception {
         return  studentServiceImpl.addStudent(std);
     }
     @GetMapping("/{id}")
-    public ResponseEntity<Optional<StudentDto>> findById(@PathVariable Long id) throws Exception {
+    public ResponseEntity<Optional<StudentDto>> findById(@PathVariable Long id) throws NotFoundException {
         return studentServiceImpl.findById(id);
 
     }
-
+    @GetMapping("/email/{email}")
+    public ResponseEntity<StudentDto> findByEmail(@PathVariable String email) throws NotFoundException{
+        return studentServiceImpl.findByEmail(email);
+    }
 
     @PutMapping("/{id}")
     public StudentDto updateStudent(@PathVariable Long id, @RequestBody Student newStd) throws Exception {
@@ -37,7 +41,7 @@ public class StudentController {
     }
 
     @PutMapping("/delete/{id}")
-    public void deleteById(@PathVariable Long id) throws Exception{
+    public void deleteById(@PathVariable Long id) throws NotFoundException{
         studentServiceImpl.deleteById(id);
     }
 
