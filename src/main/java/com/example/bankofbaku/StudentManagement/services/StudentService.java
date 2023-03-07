@@ -14,10 +14,11 @@ import java.util.Optional;
 public interface StudentService {
     List<StudentDto> getAllStudents();
     StudentDto addStudent(Student std) throws Exception;
-    public StudentDto convertIntoDto(Student student);
-    public ResponseEntity<Optional<StudentDto>> findByIdAndStatusTrue(Long id) throws NotFoundException;
-    public ResponseEntity<StudentDto> findByEmail(String email) throws NotFoundException;
-    public StudentDto updateStudent(Long id, Student newStd) throws Exception;
-    public void deleteById( Long id) throws Exception;
-    public void deleteAll();
+     StudentDto convertIntoDto(Student student);
+     ResponseEntity<Optional<StudentDto>> findByIdAndStatusTrue(Long id) throws NotFoundException;
+    List<StudentDto> getByNameOrLastnameOrEmail(String keyword) throws NotFoundException;
+    ResponseEntity<StudentDto> findByEmail(String email) throws NotFoundException;
+     StudentDto updateStudent(Long id, Student newStd) throws Exception;
+     void deleteById( Long id) throws Exception;
+     void deleteAll();
 }

@@ -7,14 +7,15 @@ import com.example.bankofbaku.StudentManagement.exceptions.IsNotValidException;
 import com.example.bankofbaku.StudentManagement.exceptions.NotFoundException;
 import com.example.bankofbaku.StudentManagement.repositories.StudentRepository;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
-import javax.xml.bind.ValidationException;
-import java.util.HashMap;
+import java.math.BigInteger;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -50,14 +51,15 @@ public class StudentServiceImpl implements StudentService {
         if (currStd.isPresent()) {
             throw new AlreadyExistsException("Email has already exists");
         } else {
-            if(!checkEmail(std)){
+            if (!checkEmail(std)) {
                 throw new IsNotValidException("Your email is not valid");
-            }else if(!isValidPassword(std)){
+            } else if (!isValidPassword(std)) {
                 throw new IsNotValidException("The password is not valid");
-            }
-            else{
+            } else {
+                std.setPassword(toHexString(getSHA(std.getPassword())));
                 studentRepository.save(std);
             }
+
         }
         return convertIntoDto(std);
     }
@@ -66,6 +68,20 @@ public class StudentServiceImpl implements StudentService {
         Optional<StudentDto> std = Optional.ofNullable(studentRepository.findByIdAndStatusTrue(id).
                 orElseThrow(() -> new NotFoundException(id + " Student not found"))).stream().map(this::convertIntoDto).findFirst();
         return ResponseEntity.ok().body(std);
+    }
+
+    @Override
+    public List<StudentDto> getByNameOrLastnameOrEmail(String keyword) {
+        List<Student> stds = studentRepository.findByStatus(true);
+        List<StudentDto> studentDtos= new ArrayList<>();
+        studentDtos = studentRepository.findByStatus(true).
+                stream().map(this::convertIntoDto).collect(Collectors.toList());
+        for(Student s:stds){
+            if(s.getLastName().contains(keyword) || s.getFirstName().contains(keyword) || s.getEmail().contains(keyword)){
+                studentDtos.add(convertIntoDto(s));
+            }
+        }
+        return studentDtos;
     }
 
     @Override
@@ -95,10 +111,11 @@ public class StudentServiceImpl implements StudentService {
                 throw new IsNotValidException("Password is not valid");
             }
            else{
+               //Change Mapping
                 student.setFirstName(newStd.getFirstName());
                 student.setLastName(newStd.getLastName());
                 student.setEmail(newStd.getEmail());
-                student.setPassword(newStd.getPassword());
+                student.setPassword(toHexString(getSHA(newStd.getPassword())));
                 student.setId(id);
                 studentRepository.save(student);
             }
@@ -108,9 +125,9 @@ public class StudentServiceImpl implements StudentService {
         return convertIntoDto(student);
     }
 
-    public void deleteById(Long id) throws NotFoundException {
+    public void deleteById(Long id)  {
         Optional<Student> currStd = studentRepository.findByIdAndStatusTrue(id);
-        Student student = (Student) currStd.get(); // duzelis
+        Student student = currStd.get(); // duzelis
         try {
             if (currStd.isPresent()) { // duzelis
                 student.setStatus(false);
@@ -128,6 +145,8 @@ public class StudentServiceImpl implements StudentService {
             studentRepository.save(allStd);
         }
     }
+    //@Email, regex
+
 public boolean checkEmail(Student std){
         boolean isValid=true;
         if(!(std.getEmail().contains("@") && std.getEmail().contains(".")))
@@ -136,14 +155,34 @@ public boolean checkEmail(Student std){
 }
 
 public boolean isValidPassword(Student std){
-    String regex = "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$%^&+=])(?=\\S+$).{8,20}$";
-    Pattern p = Pattern.compile(regex);
-    if(std.getPassword()==null){
-        return false;
-    }
-    Matcher m =p.matcher(std.getPassword());
-    return m.matches();
+        if(std.getPassword().length()<9){
+            throw new IsNotValidException("Password length must be greater than 7");
+        }else{
+            String regex = "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$%^&+=])(?=\\S+$).{8,20}$";
+            Pattern p = Pattern.compile(regex);
+            if(std.getPassword()==null){
+                return false;
+            }
+            Matcher m =p.matcher(std.getPassword());
+            return m.matches();
+        }
+
 }
+//Change BCryptPasswordEncoder
+public byte[] getSHA(String password) throws NoSuchAlgorithmException{
+    MessageDigest md = MessageDigest.getInstance("SHA-256");
+    return md.digest(password.getBytes(StandardCharsets.UTF_8));
+}
+
+public String toHexString(byte[] hash){
+    BigInteger number = new BigInteger(1,hash);
+    StringBuilder hexString=new StringBuilder(number.toString(16));
+    while(hexString.length()<64){
+        hexString.insert(0,'0');
+    }
+    return hexString.toString();
+}
+
 //public HashMap<Boolean, String> isValidPassword(Student std){
 //       boolean isValid=true;
 //       String message="";

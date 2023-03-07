@@ -33,7 +33,11 @@ private final StudentServiceImpl studentServiceImpl;
     public ResponseEntity<StudentDto> findByEmail(@PathVariable String email) throws NotFoundException{
         return studentServiceImpl.findByEmail(email);
     }
-
+    //Change RequestBody StudentDto
+    @GetMapping("/search/{value}")
+    public List<StudentDto> findByFirstNameOrLastNameOrEmail(@PathVariable String value) throws NotFoundException{
+        return studentServiceImpl.getByNameOrLastnameOrEmail(value);
+    }
     @PutMapping("/{id}")
     public StudentDto updateStudent(@PathVariable Long id, @RequestBody Student newStd) throws Exception {
         return studentServiceImpl.updateStudent(id,newStd);
