@@ -43,7 +43,16 @@ public class StudentServiceImpl implements StudentService {
     public StudentDto convertIntoDto(Student student) {
         return new StudentDto(student.getFirstName(), student.getLastName(), student.getEmail(), student.getPassword());
     }
-
+//    public Student convertToEntity(StudentDto std) {
+//        Student entity = new Student();
+//
+//        entity.setFirstName(std.getFirstName());
+//        entity.setLastName(std.getLastName());
+//        entity.setEmail(std.getEmail());
+//        entity.setId();
+//
+//        return entity;
+//    }
     public StudentDto addStudent(Student std) throws Exception {
 
         Optional<Student> currStd = studentRepository.findByEmail(std.getEmail());
@@ -51,12 +60,13 @@ public class StudentServiceImpl implements StudentService {
         if (currStd.isPresent()) {
             throw new AlreadyExistsException("Email has already exists");
         } else {
-            if (!checkEmail(std)) {
+            if (!checkEmail(std.getEmail())) {
                 throw new IsNotValidException("Your email is not valid");
-            } else if (!isValidPassword(std)) {
+            } else if (!isValidPassword(std.getPassword())) {
                 throw new IsNotValidException("The password is not valid");
             } else {
                 std.setPassword(toHexString(getSHA(std.getPassword())));
+
                 studentRepository.save(std);
             }
 
@@ -103,11 +113,11 @@ public class StudentServiceImpl implements StudentService {
         }
         Student student = currStd.get();
         try {
-            if(!checkEmail(newStd)){
+            if(!checkEmail(newStd.getEmail())){
                 throw new IsNotValidException("Email is not valid");
 
             }
-            if(!isValidPassword(newStd)){
+            if(!isValidPassword(newStd.getPassword())){
                 throw new IsNotValidException("Password is not valid");
             }
            else{
@@ -147,23 +157,23 @@ public class StudentServiceImpl implements StudentService {
     }
     //@Email, regex
 
-public boolean checkEmail(Student std){
+public boolean checkEmail(String email){
         boolean isValid=true;
-        if(!(std.getEmail().contains("@") && std.getEmail().contains(".")))
+        if(!(email.contains("@") && email.contains(".")))
             isValid=false;
         return isValid;
 }
 
-public boolean isValidPassword(Student std){
-        if(std.getPassword().length()<9){
+public boolean isValidPassword(String password){
+        if(password.length()<9){
             throw new IsNotValidException("Password length must be greater than 7");
         }else{
             String regex = "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$%^&+=])(?=\\S+$).{8,20}$";
             Pattern p = Pattern.compile(regex);
-            if(std.getPassword()==null){
+            if(password==null){
                 return false;
             }
-            Matcher m =p.matcher(std.getPassword());
+            Matcher m =p.matcher(password);
             return m.matches();
         }
 

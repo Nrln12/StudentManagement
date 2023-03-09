@@ -28,6 +28,9 @@ dependencies {
 	implementation 'mysql:mysql-connector-java:8.0.23'
 	implementation 'com.google.cloud.sql:mysql-socket-factory-connector-j-8:1.2.1'
 	implementation 'com.zaxxer:HikariCP:4.0.3'
+	implementation 'org.springframework.boot:spring-boot-starter-security'
+	testImplementation 'org.springframework.security:spring-security-test'
+
 
 	//runtimeOnly 'mysql:mysql-connector-java'
 
