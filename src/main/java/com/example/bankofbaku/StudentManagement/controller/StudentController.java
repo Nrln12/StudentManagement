@@ -20,7 +20,7 @@ private final StudentServiceImpl studentServiceImpl;
     public List<StudentDto> getAllStudents(){
         return (List<StudentDto>) studentServiceImpl.getAllStudents();
     }
-    @PostMapping
+    @PostMapping("/add-new-student")
     public StudentDto addStudent(@RequestBody Student std) throws Exception {
         return  studentServiceImpl.addStudent(std);
     }
@@ -36,7 +36,7 @@ private final StudentServiceImpl studentServiceImpl;
     //Change RequestBody StudentDto
     @GetMapping("/search/{value}")
     public List<StudentDto> findByFirstNameOrLastNameOrEmail(@PathVariable String value) throws NotFoundException{
-        return studentServiceImpl.getByNameOrLastnameOrEmail(value);
+        return studentServiceImpl.findByFirstNameOrLastnameOrEmail(value);
     }
     @PutMapping("/{id}")
     public StudentDto updateStudent(@PathVariable Long id, @RequestBody Student newStd) throws Exception {

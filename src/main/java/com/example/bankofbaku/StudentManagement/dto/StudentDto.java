@@ -2,7 +2,9 @@ package com.example.bankofbaku.StudentManagement.dto;
 
 import lombok.*;
 
+
 @Data
+@Getter
 public class StudentDto {
     private String firstName;
     private String lastName;
@@ -15,4 +17,5 @@ public class StudentDto {
         this.email = email;
         this.password = password;
     }
+
 }

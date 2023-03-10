@@ -16,7 +16,7 @@ public interface StudentService {
     StudentDto addStudent(Student std) throws Exception;
      StudentDto convertIntoDto(Student student);
      ResponseEntity<Optional<StudentDto>> findByIdAndStatusTrue(Long id) throws NotFoundException;
-    List<StudentDto> getByNameOrLastnameOrEmail(String keyword) throws NotFoundException;
+    List<StudentDto> findByFirstNameOrLastnameOrEmail(String keyword) throws NotFoundException;
     ResponseEntity<StudentDto> findByEmail(String email) throws NotFoundException;
      StudentDto updateStudent(Long id, Student newStd) throws Exception;
      void deleteById( Long id) throws Exception;

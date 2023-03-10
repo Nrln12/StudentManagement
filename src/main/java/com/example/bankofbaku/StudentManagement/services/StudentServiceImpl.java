@@ -32,6 +32,7 @@ public class StudentServiceImpl implements StudentService {
     }
 
     public List<StudentDto> getAllStudents() {
+
         List<StudentDto> stdDtos = studentRepository.findByStatus(true).
                 stream().map(this::convertIntoDto).collect(Collectors.toList());
         if (stdDtos.size() == 0) {
@@ -79,15 +80,16 @@ public class StudentServiceImpl implements StudentService {
                 orElseThrow(() -> new NotFoundException(id + " Student not found"))).stream().map(this::convertIntoDto).findFirst();
         return ResponseEntity.ok().body(std);
     }
-
     @Override
-    public List<StudentDto> getByNameOrLastnameOrEmail(String keyword) {
+    public List<StudentDto> findByFirstNameOrLastnameOrEmail(String keyword) throws NotFoundException {
         List<Student> stds = studentRepository.findByStatus(true);
-        List<StudentDto> studentDtos= new ArrayList<>();
-        studentDtos = studentRepository.findByStatus(true).
-                stream().map(this::convertIntoDto).collect(Collectors.toList());
-        for(Student s:stds){
+        List<StudentDto> studentDtos=new ArrayList<>();
+        for(Student s : stds){
             if(s.getLastName().contains(keyword) || s.getFirstName().contains(keyword) || s.getEmail().contains(keyword)){
+//                if(s.getLastName().contains("\n")){
+//                   s.setLastName("Hello"+"<br>"+"World");
+//                   studentRepository.save(s);
+//                }
                 studentDtos.add(convertIntoDto(s));
             }
         }
